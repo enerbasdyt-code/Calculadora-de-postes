@@ -186,7 +186,8 @@ function calcular(){
 
     const fs = Number(document.getElementById("fs").value);
     const rho = 1.225;
-    const fuerza = 0.5 * rho * Math.pow(vH,2) * A * fs;
+    const C=1.5;
+    const fuerza = 0.5 * rho * Math.pow(vH,2) * A * fs*C;
 
     const momento = fuerza * hTotal;
 
