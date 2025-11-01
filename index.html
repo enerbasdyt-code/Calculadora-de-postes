@@ -162,8 +162,6 @@ function calcular(){
         // Momento de inercia real del tubo: I = π/64*(OD^4 - ID^4)
         const I = (Math.PI/64) * (Math.pow(sch40[d].OD,4) - Math.pow(sch40[d].ID,4));
 
-        // Promedio ponderado según longitud aportada
-        Iequiv += I * (L/alturaPoste);
     });
 
     const alturaTerr = Number(document.getElementById("alturaTerreno").value);
@@ -195,7 +193,7 @@ function calcular(){
     // δ = F * L^3 / (3 * E * I)
 
     let deflexionTotal = 0;
-
+    const E = 200e9;
     tramos.forEach(tramo => {
         const xa = tramo.alturaBase;       // inicio del tramo [m]
         const xb = tramo.alturaTop;        // fin del tramo [m]
