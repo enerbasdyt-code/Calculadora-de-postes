@@ -8,7 +8,7 @@
 <style>
     body { font-family: Arial; padding: 20px; background: #eef2f3; }
     .card {
-        max-width: 800px; margin: auto; padding: 20px; background: white;
+        max-width: 900px; margin: auto; padding: 20px; background: white;
         border-radius: 8px; box-shadow: 0 0 10px #0002;
     }
     h2 { margin-top: 0; }
@@ -16,6 +16,15 @@
     select, input {
         width: 100%; padding: 8px; margin-top: 3px; border: 1px solid #aaa;
         border-radius: 5px;
+    }
+    .tramo {
+        border: 1px solid #ddd; padding: 8px; margin: 10px 0; border-radius: 5px;
+        background: #fafafa; position: relative;
+    }
+    .delete-btn {
+        position: absolute; right: 8px; top: 8px;
+        background: red; color: white; border: none;
+        padding: 3px 6px; cursor: pointer; font-size: 12px;
     }
     button {
         width: 100%; padding: 12px; margin-top: 20px; font-size: 16px;
@@ -36,10 +45,7 @@
     <h2>Calculadora de Postes de Windsock</h2>
 
     <label>1️⃣ Selecciona los tramos del poste (puedes combinar):</label>
-    <small>Ejemplo: 2m de 4", 2m de 3”</small>
-    <div id="tramos">
-        <!-- Cada tramo tiene longitud y diámetro -->
-    </div>
+    <div id="tramos"></div>
     <button onclick="agregarTramo()">➕ Agregar tramo</button>
 
     <label>2️⃣ Ubicación (trae velocidad V10m automáticamente):</label>
@@ -63,8 +69,8 @@
         <option value="36">36"</option>
     </select>
 
-    <label>5️⃣ Longitud de la manga (m):</label>
-    <input type="number" id="largoManga" step="0.1" placeholder="Ej: 2.4">
+    <label>5️⃣ Longitud de la manga (pulgadas):</label>
+    <input type="number" id="largoManga" placeholder="Ej: 96">
 
     <label>6️⃣ Tipo de soporte:</label>
     <select id="soporte">
@@ -82,7 +88,7 @@
 
 <script>
 
-// Tabla secreta de velocidades por ubicación (V10m)
+// Tabla V10m por ubicación
 const tablaViento = {
     "Lima": 7.5,
     "Arequipa": 9.2,
@@ -91,23 +97,21 @@ const tablaViento = {
     "Puno": 11.0
 };
 
-// Extensión L de canastilla según diámetro y largo de manga
+// Extensión de canastilla según diámetro de manga
 const extensiones = {
-    "8": 0.40,
-    "13": 0.50,
-    "18": 0.60,
-    "20": 0.65,
-    "24": 0.70,
-    "36": 0.90
+    "8": 0.40, "13": 0.50, "18": 0.60,
+    "20": 0.65, "24": 0.70, "36": 0.90
 };
 
-// Propiedades tuberías cédula 40 nominales en metros y kg/m
+// Propiedades cédula 40 (OD en metros, espesor en m, peso kg/m, módulo E)
 const tuberias = {
     "1":  { OD: 0.0334, esp: 0.00338, kgm: 2.5 },
     "2":  { OD: 0.0603, esp: 0.00391, kgm: 5.4 },
     "3":  { OD: 0.0889, esp: 0.00549, kgm: 7.5 },
     "4":  { OD: 0.1143, esp: 0.00602, kgm: 10.8 }
 };
+
+const E = 200e9; // Módulo de elasticidad del acero (Pa)
 
 // inicializa ubicaciones
 window.onload = () => {
@@ -122,78 +126,112 @@ window.onload = () => {
 };
 
 function agregarTramo() {
-    let d = document.createElement("div");
-    d.innerHTML = `
-        <label>Longitud (m) y diámetro</label>
-        <input type="number" step="0.1" placeholder="longitud (m)" class="len">
+    let cont = document.createElement("div");
+    cont.className = "tramo";
+    cont.innerHTML = `
+        <button class="delete-btn" onclick="this.parentNode.remove()">X</button>
+        <label>Longitud del tramo (m):</label>
+        <input type="number" step="0.1" placeholder="Ej: 2.5" class="len">
+        <label>Diámetro:</label>
         <select class="diam">
             <option value="1">1"</option>
             <option value="2">2"</option>
             <option value="3">3"</option>
             <option value="4">4"</option>
         </select>
-        <hr>
     `;
-    document.getElementById("tramos").appendChild(d);
+    document.getElementById("tramos").appendChild(cont);
 }
 
 function calcular() {
-    let tramos = document.querySelectorAll("#tramos div");
-    let H = 0; // altura total
+
+    let tramos = document.querySelectorAll("#tramos .tramo");
+    if (tramos.length === 0) {
+        alert("Debe agregar al menos un tramo");
+        return;
+    }
+
+    let H = 0;  // altura total
     let peso = 0;
-    let momento = 0;
+    let momentoPeso = 0;
+    let deflexion = 0;
 
-    tramos.forEach((t) => {
-        let len = parseFloat(t.querySelector(".len").value);
-        let d = t.querySelector(".diam").value;
-        if (!len) return;
-        H += len;
-        peso += tuberias[d].kgm * len;
-        // Se aporta al momento (peso lineal * brazo)
-        momento += tuberias[d].kgm * 9.81 * (H - len/2) * len;
-    });
-
+    // Datos generales
     let ubicacion = document.getElementById("ubicacion").value;
     let V10 = tablaViento[ubicacion];
     let alpha = parseFloat(document.getElementById("alpha").value);
 
-    // velocidad a la altura real
-    let Vh = V10 * Math.pow( (H/10), alpha );
-
-    // área proyectada de la manga (cilíndrica aprox)
-    let Dm = parseFloat(document.getElementById("diamManga").value) * 0.0254;
-    let Lm = parseFloat(document.getElementById("largoManga").value);
-
-    let A = Dm * Lm; // área proyectada lateral
-
-    // presión dinámica
-    let q = 0.613 * Math.pow(Vh,2);
-
-    // fuerza sin FS
-    let F = q * A;
-
-    // con FS
+    let Dm = parseFloat(document.getElementById("diamManga").value) * 0.0254; // a metros
+    let Lm = parseFloat(document.getElementById("largoManga").value) * 0.0254; // pulgadas a metros
     let FS = parseFloat(document.getElementById("FS").value);
-    let Fd = F * FS;
 
-    // momento en base por fuerza de viento
+    // recorre tramos para obtener altura y momentos de peso
+    let acumulado = 0;
+    tramos.forEach(t => {
+        let len = parseFloat(t.querySelector(".len").value);
+        let d   = t.querySelector(".diam").value;
+        if (!len) return;
+
+        acumulado += len;
+        H = acumulado;
+
+        // peso total
+        peso += tuberias[d].kgm * len;
+
+        // momento por peso (centro del tramo)
+        let brazo = acumulado - len/2;
+        momentoPeso += tuberias[d].kgm * 9.81 * len * brazo;
+    });
+
+    // velocidad a la altura
+    let Vh = V10 * Math.pow((H/10), alpha);
+
+    // presión dinámica q = 0.613 V^2
+    let q = 0.613 * Math.pow(Vh, 2);
+
+    // área proyectada de la manga
+    let A = Dm * Lm;
+
+    // fuerza total con FS
+    let Fd = q * A * FS;
+
+    // momento por viento
     let Mv = Fd * (H/2);
 
-    // verificación de aro o canastilla
+    // deflexión por viento: suma por tramos
+    // para cada tramo: δ = F * L^3 / (3 E I)
+    let alturaAcum = 0;
+    tramos.forEach(t => {
+        let len = parseFloat(t.querySelector(".len").value);
+        let d   = t.querySelector(".diam").value;
+        if (!len) return;
+
+        // momento de inercia tubo circular:
+        // I = (pi/64) * (OD^4 - ID^4)
+        let OD = tuberias[d].OD;
+        let ID = OD - 2*tuberias[d].esp;
+        let I = (Math.PI / 64) * (Math.pow(OD,4) - Math.pow(ID,4));
+
+        // altura total sobre el que actúa el viento, viga cantiléver
+        alturaAcum += len;
+        deflexion += (Fd * Math.pow(alturaAcum, 3)) / (3 * E * I);
+    });
+
+    // verificación aro/canastilla
     let soporte = document.getElementById("soporte").value;
     let condicionOK = true;
     let mensajeVerificacion = "";
 
     if (soporte === "aro") {
-        if (H <= Lm + 1.5) {
+        if (H <= (Lm + 1.5)) {
             condicionOK = false;
-            mensajeVerificacion = "⚠ La altura no es suficiente para aro (debe ser > largo + 1.5 m)";
+            mensajeVerificacion = "⚠ Debe ser mayor a largo + 1.5 m para aro";
         }
     } else {
         let Lext = extensiones[String(parseInt(document.getElementById("diamManga").value))];
         if (H <= (Lm + 1.5 - Lext)) {
             condicionOK = false;
-            mensajeVerificacion = "⚠ La altura no es suficiente para canastilla extendida";
+            mensajeVerificacion = "⚠ Altura insuficiente para canastilla extendida";
         }
     }
 
@@ -202,9 +240,10 @@ function calcular() {
         <b>Resultados:</b><br><br>
         Altura total: <b>${H.toFixed(2)} m</b><br>
         Velocidad a la altura: <b>${Vh.toFixed(2)} m/s</b><br>
-        Fuerza sobre manga (con FS): <b>${Fd.toFixed(2)} N</b><br>
-        Momento base total: <b>${(momento + Mv).toFixed(2)} N·m</b><br>
-        Peso total del poste: <b>${peso.toFixed(2)} kg</b><br><br>
+        Fuerza total sobre manga (con FS): <b>${Fd.toFixed(2)} N</b><br>
+        Momento total en base: <b>${(momentoPeso + Mv).toFixed(2)} N·m</b><br>
+        Peso total del poste: <b>${peso.toFixed(2)} kg</b><br>
+        Deflexión en punta: <b>${deflexion.toFixed(4)} m</b><br><br>
         Verificación instalación: ${condicionOK ? "✅ Aprobado" : mensajeVerificacion}
     `;
 }
