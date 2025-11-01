@@ -210,13 +210,13 @@ tramos.forEach(t=>{
     // carga distribuida equivalente sobre la manga (se reparte por la altura total)
     const Fx = Math.pow(alturaPoste,2)*xb-alturaPoste*Math.pow(xb,2)+(1/3)*Math.pow(xb,3)-Math.pow(alturaPoste,2)*xa+alturaPoste*Math.pow(xa,2)-(1/3)*Math.pow(xa,2);
 
-    const delta = Fx*fuerza*9.81/(E*1000000000*I/(1000000000000));
+    const delta = Fx*fuerza/(E*1000000000*I/(1000000000000));
 
     deflexionTotal += delta;
 });
 
 // en mm
-const deflexionMM = (deflexionTotal * 1000).toFixed(2);
+const deflexionMM = (deflexionTotal).toFixed(2);
     
         // ---- Tabla L/X
     document.getElementById('l300').textContent = (alturaPoste/300).toFixed(3) + " m";
