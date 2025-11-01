@@ -1,109 +1,214 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Calculadora de Postes para Windsock</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Postes para Windsock</title>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 30px;
-            background: #f2f2f2;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: auto;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 0 10px #0002;
-        }
-
-        h1 {
-            font-size: 22px;
-            margin-bottom: 10px;
-        }
-
-        label {
-            display: block;
-            margin-top: 10px;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 8px;
-            margin-top: 3px;
-        }
-
-        button {
-            margin-top: 20px;
-            padding: 10px;
-            width: 100%;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .resultado {
-            margin-top: 20px;
-            padding: 15px;
-            background: #e9ffe9;
-            border: 1px solid #a0d8a0;
-            border-radius: 8px;
-            display: none;
-        }
-    </style>
+<style>
+    body { font-family: Arial; padding: 20px; background: #eef2f3; }
+    .card {
+        max-width: 800px; margin: auto; padding: 20px; background: white;
+        border-radius: 8px; box-shadow: 0 0 10px #0002;
+    }
+    h2 { margin-top: 0; }
+    label { display: block; margin-top: 10px; }
+    select, input {
+        width: 100%; padding: 8px; margin-top: 3px; border: 1px solid #aaa;
+        border-radius: 5px;
+    }
+    button {
+        width: 100%; padding: 12px; margin-top: 20px; font-size: 16px;
+        background: #0074d9; color: white; border: none; border-radius: 5px;
+        cursor: pointer;
+    }
+    button:hover { background: #0057a3; }
+    .resultado {
+        margin-top: 20px; padding: 15px; background: #e2ffe2;
+        border-radius: 8px; border: 1px solid #7fc27f;
+        display: none;
+    }
+</style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>Calculadora de Postes para Windsock</h1>
+<div class="card">
+    <h2>Calculadora de Postes de Windsock</h2>
 
-        <label>Altura del mástil (metros):</label>
-        <input type="number" id="altura" step="0.1" placeholder="Ej: 3.0">
-
-        <label>Diámetro de la manga (pulgadas):</label>
-        <input type="number" id="diametro" step="1" placeholder="Ej: 24">
-
-        <label>Condiciones de viento:</label>
-        <select id="viento">
-            <option value="bajo">Bajo</option>
-            <option value="medio">Medio</option>
-            <option value="alto">Alto</option>
-        </select>
-
-        <button onclick="calcular()">Calcular</button>
-
-        <div class="resultado" id="resultado"></div>
+    <label>1️⃣ Selecciona los tramos del poste (puedes combinar):</label>
+    <small>Ejemplo: 2m de 4", 2m de 3”</small>
+    <div id="tramos">
+        <!-- Cada tramo tiene longitud y diámetro -->
     </div>
+    <button onclick="agregarTramo()">➕ Agregar tramo</button>
 
-    <script>
-        function calcular() {
-            let altura = parseFloat(document.getElementById("altura").value);
-            let diametro = parseInt(document.getElementById("diametro").value);
-            let viento = document.getElementById("viento").value;
+    <label>2️⃣ Ubicación (trae velocidad V10m automáticamente):</label>
+    <select id="ubicacion"></select>
 
-            if (!altura || !diametro) {
-                alert("Complete todos los campos");
-                return;
-            }
+    <label>3️⃣ Selecciona Alpha (rugosidad del terreno):</label>
+    <select id="alpha">
+        <option value="0.10">0.10 - Superficie lisa</option>
+        <option value="0.14">0.14 - Campo abierto</option>
+        <option value="0.22">0.22 - Suburbano</option>
+        <option value="0.28">0.28 - Urbano</option>
+    </select>
 
-            // Cálculo simple demostrativo
-            let espesor = (altura * 0.1) + (diametro * 0.02);
-            if (viento === "alto") espesor += 1;
+    <label>4️⃣ Diámetro de la manga (pulgadas):</label>
+    <select id="diamManga">
+        <option value="8">8"</option>
+        <option value="13">13"</option>
+        <option value="18">18"</option>
+        <option value="20">20"</option>
+        <option value="24">24"</option>
+        <option value="36">36"</option>
+    </select>
 
-            let tubo = espesor.toFixed(1) + " mm de espesor recomendado";
+    <label>5️⃣ Longitud de la manga (m):</label>
+    <input type="number" id="largoManga" step="0.1" placeholder="Ej: 2.4">
 
-            document.getElementById("resultado").innerHTML =
-                `<b>Resultado:</b><br>
-                Altura: ${altura} m<br>
-                Diámetro: ${diametro}”<br>
-                Espesor sugerido: <b>${tubo}</b>`;
+    <label>6️⃣ Tipo de soporte:</label>
+    <select id="soporte">
+        <option value="aro">Aro giratorio</option>
+        <option value="canastilla">Canastilla extendida</option>
+    </select>
 
-            document.getElementById("resultado").style.display = "block";
+    <label>7️⃣ Factor de seguridad:</label>
+    <input type="number" id="FS" step="0.1" value="1.5">
+
+    <button onclick="calcular()">✅ Calcular</button>
+
+    <div class="resultado" id="resultado"></div>
+</div>
+
+<script>
+
+// Tabla secreta de velocidades por ubicación (V10m)
+const tablaViento = {
+    "Lima": 7.5,
+    "Arequipa": 9.2,
+    "Piura": 10.8,
+    "Cusco": 6.0,
+    "Puno": 11.0
+};
+
+// Extensión L de canastilla según diámetro y largo de manga
+const extensiones = {
+    "8": 0.40,
+    "13": 0.50,
+    "18": 0.60,
+    "20": 0.65,
+    "24": 0.70,
+    "36": 0.90
+};
+
+// Propiedades tuberías cédula 40 nominales en metros y kg/m
+const tuberias = {
+    "1":  { OD: 0.0334, esp: 0.00338, kgm: 2.5 },
+    "2":  { OD: 0.0603, esp: 0.00391, kgm: 5.4 },
+    "3":  { OD: 0.0889, esp: 0.00549, kgm: 7.5 },
+    "4":  { OD: 0.1143, esp: 0.00602, kgm: 10.8 }
+};
+
+// inicializa ubicaciones
+window.onload = () => {
+    let ub = document.getElementById("ubicacion");
+    for (let key in tablaViento) {
+        let opt = document.createElement("option");
+        opt.value = key;
+        opt.textContent = key;
+        ub.appendChild(opt);
+    }
+    agregarTramo();
+};
+
+function agregarTramo() {
+    let d = document.createElement("div");
+    d.innerHTML = `
+        <label>Longitud (m) y diámetro</label>
+        <input type="number" step="0.1" placeholder="longitud (m)" class="len">
+        <select class="diam">
+            <option value="1">1"</option>
+            <option value="2">2"</option>
+            <option value="3">3"</option>
+            <option value="4">4"</option>
+        </select>
+        <hr>
+    `;
+    document.getElementById("tramos").appendChild(d);
+}
+
+function calcular() {
+    let tramos = document.querySelectorAll("#tramos div");
+    let H = 0; // altura total
+    let peso = 0;
+    let momento = 0;
+
+    tramos.forEach((t) => {
+        let len = parseFloat(t.querySelector(".len").value);
+        let d = t.querySelector(".diam").value;
+        if (!len) return;
+        H += len;
+        peso += tuberias[d].kgm * len;
+        // Se aporta al momento (peso lineal * brazo)
+        momento += tuberias[d].kgm * 9.81 * (H - len/2) * len;
+    });
+
+    let ubicacion = document.getElementById("ubicacion").value;
+    let V10 = tablaViento[ubicacion];
+    let alpha = parseFloat(document.getElementById("alpha").value);
+
+    // velocidad a la altura real
+    let Vh = V10 * Math.pow( (H/10), alpha );
+
+    // área proyectada de la manga (cilíndrica aprox)
+    let Dm = parseFloat(document.getElementById("diamManga").value) * 0.0254;
+    let Lm = parseFloat(document.getElementById("largoManga").value);
+
+    let A = Dm * Lm; // área proyectada lateral
+
+    // presión dinámica
+    let q = 0.613 * Math.pow(Vh,2);
+
+    // fuerza sin FS
+    let F = q * A;
+
+    // con FS
+    let FS = parseFloat(document.getElementById("FS").value);
+    let Fd = F * FS;
+
+    // momento en base por fuerza de viento
+    let Mv = Fd * (H/2);
+
+    // verificación de aro o canastilla
+    let soporte = document.getElementById("soporte").value;
+    let condicionOK = true;
+    let mensajeVerificacion = "";
+
+    if (soporte === "aro") {
+        if (H <= Lm + 1.5) {
+            condicionOK = false;
+            mensajeVerificacion = "⚠ La altura no es suficiente para aro (debe ser > largo + 1.5 m)";
         }
-    </script>
+    } else {
+        let Lext = extensiones[String(parseInt(document.getElementById("diamManga").value))];
+        if (H <= (Lm + 1.5 - Lext)) {
+            condicionOK = false;
+            mensajeVerificacion = "⚠ La altura no es suficiente para canastilla extendida";
+        }
+    }
+
+    document.getElementById("resultado").style.display = "block";
+    document.getElementById("resultado").innerHTML = `
+        <b>Resultados:</b><br><br>
+        Altura total: <b>${H.toFixed(2)} m</b><br>
+        Velocidad a la altura: <b>${Vh.toFixed(2)} m/s</b><br>
+        Fuerza sobre manga (con FS): <b>${Fd.toFixed(2)} N</b><br>
+        Momento base total: <b>${(momento + Mv).toFixed(2)} N·m</b><br>
+        Peso total del poste: <b>${peso.toFixed(2)} kg</b><br><br>
+        Verificación instalación: ${condicionOK ? "✅ Aprobado" : mensajeVerificacion}
+    `;
+}
+
+</script>
 </body>
 </html>
