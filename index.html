@@ -190,21 +190,37 @@ function calcular(){
     const momento = fuerza * hTotal;
 
     // ---- Deflexión precisa usando expresión polinomial de viga empotrada y carga puntual en la punta:
-    // δ = F * L^3 / (3 * E * I)
 
-    let deflexionTotal = 0;
-    const E = 200e9;
-    tramos.forEach(t=>{
-        const xa = tramo.alturaBase;       // inicio del tramo [m]
-        const xb = tramo.alturaTop;        // fin del tramo [m]
-        const L = xb - xa;                 // largo del tramo [m]
-        const q = tramo.carga;             // carga distribuida [N/m]
-        const I  = t.I;
+    // ---- Deflexión precisa por tramo
+let deflexionTotal = 0;
+const E = 200e9;
 
-        // fórmula exacta de integración polinómica
-        const delta = (q / (24 * E * I))*(Math.pow(L, 4)+4*xa*Math.pow(L, 3)+6*Math.pow(xa, 2)*Math.pow(L, 2)+4*Math.pow(xa, 3)*L);
+let alturaAcumulada = 0;   // para calcular xa y xb de cada tramo
 
-        deflexionTotal += delta;
+tramos.forEach(t=>{
+    const d = Number(t.querySelector('.diametro').value);
+    const L = Number(t.querySelector('.longitud').value);
+
+    const I  = t.I;
+
+    const xa = alturaAcumulada;   // inicio del tramo
+    const xb = alturaAcumulada + L; // fin del tramo
+    alturaAcumulada = xb;
+
+    // carga distribuida equivalente sobre la manga (se reparte por la altura total)
+    const q = fuerza / alturaPoste;  // N/m
+
+    const delta = (q / (24 * E * I)) *
+        ( Math.pow(L, 4)
+        + 4 * xa * Math.pow(L, 3)
+        + 6 * Math.pow(xa, 2) * Math.pow(L, 2)
+        + 4 * Math.pow(xa, 3) * L );
+
+    deflexionTotal += delta;
+});
+
+// en mm
+const deflexionMM = (deflexionTotal * 1000).toFixed(2);
     });
     
         // ---- Tabla L/X
@@ -221,6 +237,6 @@ function calcular(){
         `Fuerza sobre manga: <b>${fuerza.toFixed(2)} N</b><br>`+
         `Momento en la base: <b>${momento.toFixed(2)} N·m</b><br>`+
         `Peso total del poste: <b>${pesoPoste.toFixed(2)} kg</b><br>`+
-        `Deflexión estimada en la punta: <b>${deflexTotal*1000} mm</b>`;
+        `Deflexión estimada en la punta: <b>${deflexionMM} mm</b>`;
 }
 </script>
