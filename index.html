@@ -210,11 +210,7 @@ tramos.forEach(t=>{
     // carga distribuida equivalente sobre la manga (se reparte por la altura total)
     const q = fuerza / alturaPoste;  // N/m
 
-    const delta = (q / (24 * E * I)) *
-        ( Math.pow(L, 4)
-        + 4 * xa * Math.pow(L, 3)
-        + 6 * Math.pow(xa, 2) * Math.pow(L, 2)
-        + 4 * Math.pow(xa, 3) * L );
+    const delta = (q / (24 * E * I))*(Math.pow(L, 4)+4*xa*Math.pow(L, 3)+6*Math.pow(xa, 2)*Math.pow(L, 2)+4*Math.pow(xa, 3)*L);
 
     deflexionTotal += delta;
 });
