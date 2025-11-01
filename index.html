@@ -187,7 +187,7 @@ function calcular(){
     const C=1.5;
     const fuerza = 0.5 * rho * Math.pow(vH,2) * A * fs*C;
 
-    const momento = fuerza * hTotal;
+    const momento = fuerza * alturaPoste;
 
     // ---- Deflexión precisa usando expresión polinomial de viga empotrada y carga puntual en la punta:
 
@@ -208,9 +208,9 @@ tramos.forEach(t=>{
     alturaAcumulada = xb;
 
     // carga distribuida equivalente sobre la manga (se reparte por la altura total)
-    const q = fuerza / alturaPoste;  // N/m
+    const Fx = Math.pow(alturaPoste,2)*xb-alturaPoste*Math.pow(xb,2)+(1/3)*Math.pow(xb,3)-Math.pow(alturaPoste,2)*xa+alturaPoste*Math.pow(xa,2)-(1/3)*Math.pow(xa,2);
 
-    const delta = (q / (24 * E * I))*(Math.pow(L, 4)+4*xa*Math.pow(L, 3)+6*Math.pow(xa, 2)*Math.pow(L, 2)+4*Math.pow(xa, 3)*L);
+    const delta = Fx*fuerza*9.81/(E*1000000000*I/(1000000000000));
 
     deflexionTotal += delta;
 });
