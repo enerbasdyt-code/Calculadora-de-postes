@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculadora de Postes para Windsock</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 30px;
+            background: #f2f2f2;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px #0002;
+        }
+
+        h1 {
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 3px;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px;
+            width: 100%;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .resultado {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e9ffe9;
+            border: 1px solid #a0d8a0;
+            border-radius: 8px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Calculadora de Postes para Windsock</h1>
+
+        <label>Altura del mástil (metros):</label>
+        <input type="number" id="altura" step="0.1" placeholder="Ej: 3.0">
+
+        <label>Diámetro de la manga (pulgadas):</label>
+        <input type="number" id="diametro" step="1" placeholder="Ej: 24">
+
+        <label>Condiciones de viento:</label>
+        <select id="viento">
+            <option value="bajo">Bajo</option>
+            <option value="medio">Medio</option>
+            <option value="alto">Alto</option>
+        </select>
+
+        <button onclick="calcular()">Calcular</button>
+
+        <div class="resultado" id="resultado"></div>
+    </div>
+
+    <script>
+        function calcular() {
+            let altura = parseFloat(document.getElementById("altura").value);
+            let diametro = parseInt(document.getElementById("diametro").value);
+            let viento = document.getElementById("viento").value;
+
+            if (!altura || !diametro) {
+                alert("Complete todos los campos");
+                return;
+            }
+
+            // Cálculo simple demostrativo
+            let espesor = (altura * 0.1) + (diametro * 0.02);
+            if (viento === "alto") espesor += 1;
+
+            let tubo = espesor.toFixed(1) + " mm de espesor recomendado";
+
+            document.getElementById("resultado").innerHTML =
+                `<b>Resultado:</b><br>
+                Altura: ${altura} m<br>
+                Diámetro: ${diametro}”<br>
+                Espesor sugerido: <b>${tubo}</b>`;
+
+            document.getElementById("resultado").style.display = "block";
+        }
+    </script>
+</body>
+</html>
