@@ -161,7 +161,7 @@ function calcular(){
 
         // Momento de inercia real del tubo: I = π/64*(OD^4 - ID^4)
         const I = (Math.PI/64) * (Math.pow(sch40[d].OD,4) - Math.pow(sch40[d].ID,4));
-
+        t.I = I;
     });
 
     const alturaTerr = Number(document.getElementById("alturaTerreno").value);
@@ -194,11 +194,12 @@ function calcular(){
 
     let deflexionTotal = 0;
     const E = 200e9;
-    tramos.forEach(tramo => {
+    tramos.forEach(t=>{
         const xa = tramo.alturaBase;       // inicio del tramo [m]
         const xb = tramo.alturaTop;        // fin del tramo [m]
         const L = xb - xa;                 // largo del tramo [m]
         const q = tramo.carga;             // carga distribuida [N/m]
+        const I  = t.I;
 
         // fórmula exacta de integración polinómica
         const delta = (q / (24 * E * I))*(Math.pow(L, 4)+4*xa*Math.pow(L, 3)+6*Math.pow(xa, 2)*Math.pow(L, 2)+4*Math.pow(xa, 3)*L);
