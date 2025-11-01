@@ -2,252 +2,214 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calculadora de Postes para Windsock</title>
-
+<title>Calculadora de Postes</title>
 <style>
-    body { font-family: Arial; padding: 20px; background: #eef2f3; }
-    .card {
-        max-width: 900px; margin: auto; padding: 20px; background: white;
-        border-radius: 8px; box-shadow: 0 0 10px #0002;
-    }
-    h2 { margin-top: 0; }
-    label { display: block; margin-top: 10px; }
-    select, input {
-        width: 100%; padding: 8px; margin-top: 3px; border: 1px solid #aaa;
-        border-radius: 5px;
-    }
-    .tramo {
-        border: 1px solid #ddd; padding: 8px; margin: 10px 0; border-radius: 5px;
-        background: #fafafa; position: relative;
-    }
-    .delete-btn {
-        position: absolute; right: 8px; top: 8px;
-        background: red; color: white; border: none;
-        padding: 3px 6px; cursor: pointer; font-size: 12px;
-    }
-    button {
-        width: 100%; padding: 12px; margin-top: 20px; font-size: 16px;
-        background: #0074d9; color: white; border: none; border-radius: 5px;
-        cursor: pointer;
-    }
-    button:hover { background: #0057a3; }
-    .resultado {
-        margin-top: 20px; padding: 15px; background: #e2ffe2;
-        border-radius: 8px; border: 1px solid #7fc27f;
-        display: none;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; max-width:900px; }
+    h2 { margin-top:25px; }
+    .tramo { border:1px solid #ccc; padding:10px; margin:5px 0; display:flex; gap:10px; align-items:center; }
+    .tramo input { width:80px; }
+    .small-btn { padding:3px 8px; font-size:11px; cursor:pointer; }
+    table { border-collapse: collapse; margin-top:20px; width:100%; }
+    table, th, td { border:1px solid #aaa; padding:6px; text-align:center; }
+    .resultado { background:#eef; padding:10px; margin-top:20px; font-size:18px; }
 </style>
 </head>
-
 <body>
-<div class="card">
-    <h2>Calculadora de Postes de Windsock</h2>
 
-    <label>1️⃣ Selecciona los tramos del poste (puedes combinar):</label>
-    <div id="tramos"></div>
-    <button onclick="agregarTramo()">➕ Agregar tramo</button>
+<h1>Calculadora de Postes de Acero SCH40</h1>
 
-    <label>2️⃣ Ubicación (trae velocidad V10m automáticamente):</label>
-    <select id="ubicacion"></select>
+<h2>1. Selección de Tramos</h2>
+<button onclick="agregarTramo()">Agregar Tramo</button>
+<div id="tramos"></div>
 
-    <label>3️⃣ Selecciona Alpha (rugosidad del terreno):</label>
-    <select id="alpha">
-        <option value="0.10">0.10 - Superficie lisa</option>
-        <option value="0.14">0.14 - Campo abierto</option>
-        <option value="0.22">0.22 - Suburbano</option>
-        <option value="0.28">0.28 - Urbano</option>
-    </select>
+<h2>2. Datos generales</h2>
+<label>Altura sobre el terreno (m): </label>
+<input id="alturaTerreno" type="number" step="0.1" value="0"><br><br>
 
-    <label>4️⃣ Diámetro de la manga (pulgadas):</label>
-    <select id="diamManga">
-        <option value="8">8"</option>
-        <option value="13">13"</option>
-        <option value="18">18"</option>
-        <option value="20">20"</option>
-        <option value="24">24"</option>
-        <option value="36">36"</option>
-    </select>
+<label>Ubicación (Departamento): </label>
+<select id="ubicacion"></select><br><br>
 
-    <label>5️⃣ Longitud de la manga (pulgadas):</label>
-    <input type="number" id="largoManga" placeholder="Ej: 96">
+<label>Velocidad según E020 Cargas (m/s): </label>
+<input id="vBase" type="number" readonly><br><br>
 
-    <label>6️⃣ Tipo de soporte:</label>
-    <select id="soporte">
-        <option value="aro">Aro giratorio</option>
-        <option value="canastilla">Canastilla extendida</option>
-    </select>
+<label>Alpha (rugosidad E.020): </label>
+<select id="alpha">
+    <option value="0.12">α = 0.14 – Desierto, mar, aeropuerto (A-Muy abierto, costa)</option>
+    <option value="0.16">α = 0.16 – Campo, subirbio disperso (B-Abierto con poca obstrucción)</option>
+    <option value="0.18">α = 0.22 – Edificaciones medianas, árboles (C-Suburbano/industrial)</option>
+    <option value="0.18">α = 0.3 – Centro de ciudad (D-Urbano/denso)</option>
+</select><br><br>
 
-    <label>7️⃣ Factor de seguridad:</label>
-    <input type="number" id="FS" step="0.1" value="1.5">
+<h2>3. Datos de la manga de viento</h2>
+<label>Diámetro (pulgadas): </label>
+<select id="diamManga">
+    <option value="8">8"</option>
+    <option value="13">13"</option>
+    <option value="18">18"</option>
+    <option value="20">20"</option>
+    <option value="24">24"</option>
+    <option value="36">36"</option>
+</select><br><br>
 
-    <button onclick="calcular()">✅ Calcular</button>
+<label>Longitud (pulgadas): </label>
+<input id="longManga" type="number"><br><br>
 
-    <div class="resultado" id="resultado"></div>
-</div>
+<label>Tipo de soporte: </label>
+<select id="tipoSoporte">
+    <option value="aro">Aro</option>
+    <option value="canastilla">Canastilla extendida</option>
+</select><br><br>
+
+<h2>4. Seguridad</h2>
+<label>Factor de seguridad: </label>
+<input id="fs" type="number" step="0.1" value="1.5"><br><br>
+
+<button onclick="calcular()">Calcular</button>
+
+<div id="resultados" class="resultado"></div>
+
+<h2>Tabla de criterios de deflexión</h2>
+<table>
+    <tr><th>Criterio</th><th>Valor</th><th>Clasificación</th></tr>
+    <tr><td>L/300</td><td id="l300"></td><td>Rígido</td></tr>
+    <tr><td>L/200</td><td id="l200"></td><td>Estable</td></tr>
+    <tr><td>L/150</td><td id="l150"></td><td>Semi-Flexible</td></tr>
+    <tr><td>L/125</td><td id="l125"></td><td>Flexible</td></tr>
+    <tr><td>L/100</td><td id="l100"></td><td>Muy Flexible</td></tr>
+</table>
 
 <script>
-
-// Tabla V10m por ubicación
-const tablaViento = {
-    "Lima": 7.5,
-    "Arequipa": 9.2,
-    "Piura": 10.8,
-    "Cusco": 6.0,
-    "Puno": 11.0
+// =========================
+// 1) Velocidades por departamento (EDITABLE por ti)
+// =========================
+const velocidades = {
+    Amazonas: 28, Áncash: 30, Apurímac: 26, Arequipa: 34, Ayacucho: 27, Cajamarca: 29,
+    Callao: 32, Cusco: 33, Huancavelica: 25, Huánuco: 28, Ica: 36, Junín: 30,
+    La_Libertad: 32, Lambayeque: 35, Lima: 33, Loreto: 26, Madre_de_Dios: 24,
+    Moquegua: 34, Pasco: 29, Piura: 36, Puno: 31, San_Martín: 26, Tacna: 35,
+    Tumbes: 37, Ucayali: 25
 };
 
-// Extensión de canastilla según diámetro de manga
-const extensiones = {
-    "8": 0.40, "13": 0.50, "18": 0.60,
-    "20": 0.65, "24": 0.70, "36": 0.90
+// Cargar departamentos al menú
+const selectDep = document.getElementById("ubicacion");
+for(let d in velocidades){
+    let opt = document.createElement("option");
+    opt.value = d;
+    opt.textContent = d.replace(/_/g," ");
+    selectDep.appendChild(opt);
+}
+
+function actualizarVbase(){
+    document.getElementById('vBase').value = velocidades[document.getElementById('ubicacion').value];
+}
+selectDep.addEventListener('change', actualizarVbase);
+actualizarVbase();
+
+// =========================
+// 2) Propiedades de tubos SCH40 (DIÁMETRO EXTERIOR E INTERIOR reales)
+// OD = diámetro externo (m)
+// ID = diámetro interno (m)
+// peso aproximado (kg/m)
+// =========================
+const sch40 = {
+    1: { OD: 0.0334, ID: 0.0276, peso: 2.64 },
+    2: { OD: 0.0603, ID: 0.0525, peso: 5.44 },
+    3: { OD: 0.0889, ID: 0.0807, peso: 8.84 },
+    4: { OD: 0.1143, ID: 0.1023, peso: 12.5 }
 };
 
-// Propiedades cédula 40 (OD en metros, espesor en m, peso kg/m, módulo E)
-const tuberias = {
-    "1":  { OD: 0.0334, esp: 0.00338, kgm: 2.5 },
-    "2":  { OD: 0.0603, esp: 0.00391, kgm: 5.4 },
-    "3":  { OD: 0.0889, esp: 0.00549, kgm: 7.5 },
-    "4":  { OD: 0.1143, esp: 0.00602, kgm: 10.8 }
-};
+// =========================
+// 3) Añadir tramos
+// =========================
+function agregarTramo(){
+    const cont = document.getElementById("tramos");
+    const div = document.createElement("div");
+    div.className = "tramo";
 
-const E = 200e9; // Módulo de elasticidad del acero (Pa)
-
-// inicializa ubicaciones
-window.onload = () => {
-    let ub = document.getElementById("ubicacion");
-    for (let key in tablaViento) {
-        let opt = document.createElement("option");
-        opt.value = key;
-        opt.textContent = key;
-        ub.appendChild(opt);
-    }
-    agregarTramo();
-};
-
-function agregarTramo() {
-    let cont = document.createElement("div");
-    cont.className = "tramo";
-    cont.innerHTML = `
-        <button class="delete-btn" onclick="this.parentNode.remove()">X</button>
-        <label>Longitud del tramo (m):</label>
-        <input type="number" step="0.1" placeholder="Ej: 2.5" class="len">
-        <label>Diámetro:</label>
-        <select class="diam">
+    div.innerHTML = `
+        <label>Ø ("):</label>
+        <select class="diametro">
             <option value="1">1"</option>
             <option value="2">2"</option>
             <option value="3">3"</option>
             <option value="4">4"</option>
         </select>
+        <label>Long (m):</label>
+        <input class="longitud" type="number" step="0.1">
+        <button class="small-btn" onclick="this.parentElement.remove()">X</button>
     `;
-    document.getElementById("tramos").appendChild(cont);
+    cont.appendChild(div);
 }
 
-function calcular() {
+// =========================
+// 4) Cálculo principal
+// =========================
+function calcular(){
 
-    let tramos = document.querySelectorAll("#tramos .tramo");
-    if (tramos.length === 0) {
-        alert("Debe agregar al menos un tramo");
-        return;
-    }
+    // ---- Recorrer tramos
+    const tramos = document.querySelectorAll(".tramo");
+    let alturaPoste = 0;
+    let pesoPoste = 0;
+    let Iequiv = 0;
 
-    let H = 0;  // altura total
-    let peso = 0;
-    let momentoPeso = 0;
-    let deflexion = 0;
+    tramos.forEach(t=>{
+        const d = Number(t.querySelector('.diametro').value);
+        const L = Number(t.querySelector('.longitud').value);
 
-    // Datos generales
-    let ubicacion = document.getElementById("ubicacion").value;
-    let V10 = tablaViento[ubicacion];
-    let alpha = parseFloat(document.getElementById("alpha").value);
+        alturaPoste += L;
+        pesoPoste += sch40[d].peso * L;
 
-    let Dm = parseFloat(document.getElementById("diamManga").value) * 0.0254; // a metros
-    let Lm = parseFloat(document.getElementById("largoManga").value) * 0.0254; // pulgadas a metros
-    let FS = parseFloat(document.getElementById("FS").value);
+        // Momento de inercia real del tubo: I = π/64*(OD^4 - ID^4)
+        const I = (Math.PI/64) * (Math.pow(sch40[d].OD,4) - Math.pow(sch40[d].ID,4));
 
-    // recorre tramos para obtener altura y momentos de peso
-    let acumulado = 0;
-    tramos.forEach(t => {
-        let len = parseFloat(t.querySelector(".len").value);
-        let d   = t.querySelector(".diam").value;
-        if (!len) return;
-
-        acumulado += len;
-        H = acumulado;
-
-        // peso total
-        peso += tuberias[d].kgm * len;
-
-        // momento por peso (centro del tramo)
-        let brazo = acumulado - len/2;
-        momentoPeso += tuberias[d].kgm * 9.81 * len * brazo;
+        // Promedio ponderado según longitud aportada
+        Iequiv += I * (L/alturaPoste);
     });
 
-    // velocidad a la altura
-    let Vh = V10 * Math.pow((H/10), alpha);
+    const alturaTerr = Number(document.getElementById("alturaTerreno").value);
+    const hTotal = alturaPoste + alturaTerr;
 
-    // presión dinámica q = 0.613 V^2
-    let q = 0.613 * Math.pow(Vh, 2);
+    // ---- Viento
+    const v10 = Number(document.getElementById('vBase').value);
+    const alpha = Number(document.getElementById('alpha').value);
 
-    // área proyectada de la manga
-    let A = Dm * Lm;
+    // E.020: V(h)= V10*(h/10)^alpha
+    const vH = v10 * Math.pow((hTotal/10), alpha);
+    const vKh = (vH * 3.6).toFixed(1);
 
-    // fuerza total con FS
-    let Fd = q * A * FS;
+    // ---- Área proyectada manga
+    const diamPul = Number(document.getElementById("diamManga").value);
+    const longPul = Number(document.getElementById("longManga").value);
+    const Dm = diamPul * 0.0254;
+    const Lm = longPul * 0.0254;
+    const A = Dm * Lm;
 
-    // momento por viento
-    let Mv = Fd * (H/2);
+    const fs = Number(document.getElementById("fs").value);
+    const rho = 1.225;
+    const fuerza = 0.5 * rho * Math.pow(vH,2) * A * fs;
 
-    // deflexión por viento: suma por tramos
-    // para cada tramo: δ = F * L^3 / (3 E I)
-    let alturaAcum = 0;
-    tramos.forEach(t => {
-        let len = parseFloat(t.querySelector(".len").value);
-        let d   = t.querySelector(".diam").value;
-        if (!len) return;
+    const momento = fuerza * hTotal;
 
-        // momento de inercia tubo circular:
-        // I = (pi/64) * (OD^4 - ID^4)
-        let OD = tuberias[d].OD;
-        let ID = OD - 2*tuberias[d].esp;
-        let I = (Math.PI / 64) * (Math.pow(OD,4) - Math.pow(ID,4));
+    // ---- Deflexión precisa usando expresión polinomial de viga empotrada y carga puntual en la punta:
+    // δ = F * L^3 / (3 * E * I)
+    const E = 200e9;
+    const delta = (fuerza * Math.pow(alturaPoste,3)) / (3 * E * Iequiv);
+    const delta_mm = (delta * 1000).toFixed(2);
 
-        // altura total sobre el que actúa el viento, viga cantiléver
-        alturaAcum += len;
-        deflexion += (Fd * Math.pow(alturaAcum, 3)) / (3 * E * I);
-    });
+    // ---- Tabla L/X
+    document.getElementById('l300').textContent = (alturaPoste/300).toFixed(3) + " m";
+    document.getElementById('l200').textContent = (alturaPoste/200).toFixed(3) + " m";
+    document.getElementById('l150').textContent = (alturaPoste/150).toFixed(3) + " m";
+    document.getElementById('l125').textContent = (alturaPoste/125).toFixed(3) + " m";
+    document.getElementById('l100').textContent = (alturaPoste/100).toFixed(3) + " m";
 
-    // verificación aro/canastilla
-    let soporte = document.getElementById("soporte").value;
-    let condicionOK = true;
-    let mensajeVerificacion = "";
-
-    if (soporte === "aro") {
-        if (H <= (Lm + 1.5)) {
-            condicionOK = false;
-            mensajeVerificacion = "⚠ Debe ser mayor a largo + 1.5 m para aro";
-        }
-    } else {
-        let Lext = extensiones[String(parseInt(document.getElementById("diamManga").value))];
-        if (H <= (Lm + 1.5 - Lext)) {
-            condicionOK = false;
-            mensajeVerificacion = "⚠ Altura insuficiente para canastilla extendida";
-        }
-    }
-
-    document.getElementById("resultado").style.display = "block";
-    document.getElementById("resultado").innerHTML = `
-        <b>Resultados:</b><br><br>
-        Altura total: <b>${H.toFixed(2)} m</b><br>
-        Velocidad a la altura: <b>${Vh.toFixed(2)} m/s</b><br>
-        Fuerza total sobre manga (con FS): <b>${Fd.toFixed(2)} N</b><br>
-        Momento total en base: <b>${(momentoPeso + Mv).toFixed(2)} N·m</b><br>
-        Peso total del poste: <b>${peso.toFixed(2)} kg</b><br>
-        Deflexión en punta: <b>${deflexion.toFixed(4)} m</b><br><br>
-        Verificación instalación: ${condicionOK ? "✅ Aprobado" : mensajeVerificacion}
-    `;
+    document.getElementById('resultados').innerHTML =
+        `Altura total: <b>${hTotal.toFixed(2)} m</b><br>`+
+        `Velocidad según E020: <b>${v10} m/s</b><br>`+
+        `Velocidad a altura del poste: <b>${vH.toFixed(2)} m/s</b> (${vKh} km/h)<br>`+
+        `Fuerza sobre manga: <b>${fuerza.toFixed(2)} N</b><br>`+
+        `Momento en la base: <b>${momento.toFixed(2)} N·m</b><br>`+
+        `Peso total del poste: <b>${pesoPoste.toFixed(2)} kg</b><br>`+
+        `Deflexión estimada en la punta: <b>${delta_mm} mm</b>`;
 }
-
 </script>
-</body>
-</html>
