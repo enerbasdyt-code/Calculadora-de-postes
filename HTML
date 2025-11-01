@@ -1,0 +1,109 @@
+<!doctype html>
+if(!table) return 0;
+// buscar la longitud disponible o aproximar por el mayor menor
+if(table[String(length_m)]) return table[String(length_m)];
+// fallback: buscar el key más cercano
+const keys = Object.keys(table).map(k=>Number(k));
+let chosen = keys.reduce((a,b)=> Math.abs(a-length_m)<Math.abs(b-length_m)?a:b );
+return table[String(chosen)]||0;
+}
+
+
+document.getElementById('calculate').onclick = ()=>{
+const location = locSel.value;
+const V10 = designer.locations[location]; // m/s at 10m
+const alpha = Number(document.getElementById('alphaSelect').value);
+const segments = getSegments();
+if(segments.length===0){ alert('Añada al menos un tramo'); return; }
+const totalHeight = segments.reduce((s,x)=>s+x.len,0);
+// velocidad a la altura del poste (top) usando power law: V(h) = V10 * (h/10)^alpha
+const Vh = V10 * Math.pow(totalHeight/10, alpha);
+
+
+const windsockDcm = Number(document.getElementById('windsockDiameter').value);
+const windsockLen = Number(document.getElementById('windsockLength').value);
+const attachment = document.getElementById('attachmentType').value;
+const safetyFactor = Number(document.getElementById('safetyFactor').value) || 1.0;
+const Cd = Number(document.getElementById('Cd').value) || 1.2;
+
+
+// Area proyectada de la manga: aproximación rect. A = L * D (convert cm->m)
+const Ad = windsockLen * (windsockDcm/100);
+
+
+// Fuerza aerodinámica: F = 0.5 * rho_air * Cd * A * V^2
+const Fraw = 0.5 * designer.rho_air * Cd * Ad * Math.pow(Vh,2);
+const Fdesign = Fraw * safetyFactor;
+
+
+// peso del poste: sumar por tramos
+let weight_total_N = 0;
+let I_min = Infinity;
+segments.forEach(sg=>{ const props = computeMomentOfInertia(sg.dia_nom); const vol = props.A * sg.len; const mass = vol * designer.rho_steel; weight_total_N += mass * 9.80665; if(props.I < I_min) I_min = props.I; });
+
+
+// momento producido en la base por la fuerza del windsock (momento = Fdesign * altura hasta aplicacion)
+// asumimos que la fuerza actua en el extremo superior del poste
+const M_windsock = Fdesign * totalHeight;
+
+
+// momento por peso propio (tramo uniformemente distribuido): para una viga en voladizo con carga u (N/m), el momento en la base es u*L^2/2
+// calculamos u = weight_total_N / totalHeight
+const u = weight_total_N / totalHeight;
+const M_weight = u * Math.pow(totalHeight,2) / 2;
+
+
+const M_total_base = M_windsock + M_weight;
+
+
+// Deflexión en la punta: se usa aproximación conservadora: todo el poste con la I mínima
+// Delta = P * L^3 / (3 E I_min) (carga puntual en extremo libre)
+const delta_tip = Fdesign * Math.pow(totalHeight,3) / (3 * designer.E * I_min);
+
+
+// Verificaciones de altura vs windsock
+let height_ok = true; let height_msg='OK';
+if(attachment==='aro'){
+if(totalHeight < windsockLen + 1.5) { height_ok=false; height_msg = 'NO cumple: altura menor que largo de manga + 1.5 m'; }
+} else {
+const Lext = get_L_extension(windsockDcm, windsockLen);
+if(totalHeight < (windsockLen - Lext) + 1.5) { height_ok=false; height_msg = `NO cumple (canastilla): altura menor que (largo - L) +1.5 m (L=${Lext} m)`; }
+}
+
+
+// Resultados
+const resultsDiv = document.getElementById('results');
+resultsDiv.innerHTML = `
+<h3>Resultados</h3>
+<table>
+<tr><th>Altura total (m)</th><td>${totalHeight.toFixed(3)}</td></tr>
+<tr><th>Velocidad a 10 m (m/s)</th><td>${V10.toFixed(3)}</td></tr>
+<tr><th>Velocidad estimada a la altura del poste (m/s)</th><td>${Vh.toFixed(3)}</td></tr>
+<tr><th>Área proyectada de la manga (m²)</th><td>${Ad.toFixed(4)}</td></tr>
+<tr><th>Fuerza aerodinámica (N) — sin FS</th><td>${Fraw.toFixed(3)}</td></tr>
+<tr><th>Fuerza aerodinámica (N) — con FS</th><td>${Fdesign.toFixed(3)}</td></tr>
+<tr><th>Peso total del poste (N)</th><td>${weight_total_N.toFixed(2)}</td></tr>
+<tr><th>Momento en la base por viento (N·m)</th><td>${M_windsock.toFixed(2)}</td></tr>
+<tr><th>Momento en la base por peso propio (N·m)</th><td>${M_weight.toFixed(2)}</td></tr>
+<tr><th>Momento total en la base (N·m)</th><td>${M_total_base.toFixed(2)}</td></tr>
+<tr><th>Momento de inercia mínima usada (m⁴)</th><td>${I_min.toExponential(3)}</td></tr>
+<tr><th>Deflexión en punta (m) — aproximada</th><td>${delta_tip.toFixed(4)}</td></tr>
+<tr><th>Verificación altura</th><td class="${height_ok? '': 'warning'}">${height_msg}</td></tr>
+</table>
+<p class="muted small">Notas: las fórmulas usadas y la aproximación para deflexión son conservadoras y simplificadas. Se ha usado la sección con menor I para todo el poste y la carga puntual en el extremo. Para proyectos críticos se recomienda análisis por tramos más riguroso o FEM.</p>
+`;
+
+
+// también mostrar una tabla resumen de tramos
+let segTable = '<h4>Tramos</h4><table><tr><th>#</th><th>Diámetro (in)</th><th>Longitud (m)</th><th>I (m4)</th><th>A (m2)</th></tr>';
+let cumh=0;
+segments.forEach((s,i)=>{ const p = computeMomentOfInertia(s.dia_nom); segTable += `<tr><td>${i+1}</td><td>${s.dia_nom}</td><td>${s.len.toFixed(3)}</td><td>${p.I.toExponential(3)}</td><td>${p.A.toExponential(3)}</td></tr>`; cumh+=s.len; });
+segTable += '</table>';
+resultsDiv.innerHTML += segTable;
+};
+
+
+// fin script
+</script>
+</body>
+</html>
