@@ -193,11 +193,27 @@ function calcular(){
 
     // ---- Deflexión precisa usando expresión polinomial de viga empotrada y carga puntual en la punta:
     // δ = F * L^3 / (3 * E * I)
-    const E = 200e9;
-    const delta = (fuerza * Math.pow(alturaPoste,3)) / (3 * E * Iequiv);
-    const delta_mm = (delta * 1000).toFixed(2);
 
-    // ---- Tabla L/X
+    function calcularDeflexionTotal(tramos, E, I) {
+    let deflexionTotal = 0;
+
+    tramos.forEach(tramo => {
+        const xa = tramo.alturaBase;       // inicio del tramo [m]
+        const xb = tramo.alturaTop;        // fin del tramo [m]
+        const L = xb - xa;                 // largo del tramo [m]
+        const q = tramo.carga;             // carga distribuida [N/m]
+
+        // fórmula exacta de integración polinómica
+        const delta = (q / (24 * E * I)) *
+            (Math.pow(L, 4) +
+             4 * xa * Math.pow(L, 3) +
+             6 * Math.pow(xa, 2) * Math.pow(L, 2) +
+             4 * Math.pow(xa, 3) * L);
+
+        deflexionTotal += delta;
+    });
+    
+        // ---- Tabla L/X
     document.getElementById('l300').textContent = (alturaPoste/300).toFixed(3) + " m";
     document.getElementById('l200').textContent = (alturaPoste/200).toFixed(3) + " m";
     document.getElementById('l150').textContent = (alturaPoste/150).toFixed(3) + " m";
@@ -211,6 +227,6 @@ function calcular(){
         `Fuerza sobre manga: <b>${fuerza.toFixed(2)} N</b><br>`+
         `Momento en la base: <b>${momento.toFixed(2)} N·m</b><br>`+
         `Peso total del poste: <b>${pesoPoste.toFixed(2)} kg</b><br>`+
-        `Deflexión estimada en la punta: <b>${delta_mm} mm</b>`;
+        `Deflexión estimada en la punta: <b>${deflexTotal*1000} mm</b>`;
 }
 </script>
