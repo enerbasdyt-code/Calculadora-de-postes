@@ -208,7 +208,7 @@ tramos.forEach(t=>{
     alturaAcumulada = xb;
 
     // carga distribuida equivalente sobre la manga (se reparte por la altura total)
-    const Fx = Math.pow(alturaPoste,2)*xb-alturaPoste*Math.pow(xb,2)+(1/3)*Math.pow(xb,3)-Math.pow(alturaPoste,2)*xa+alturaPoste*Math.pow(xa,2)-(1/3)*Math.pow(xa,2);
+    const Fx = Math.pow(alturaPoste,2)*xb-alturaPoste*Math.pow(xb,2)+(1/3)*Math.pow(xb,3)-Math.pow(alturaPoste,2)*xa+alturaPoste*Math.pow(xa,2)-(1/3)*Math.pow(xa,3);
 
     const delta = Fx*fuerza/(E*1000000000*I/(1000000000000));
 
