@@ -184,7 +184,7 @@ function calcular(){
     const longPul = Number(document.getElementById("longManga").value) || 24;
     const Dm = diamPul * 0.0254;
     const Lm = longPul * 0.0254;
-    const A_manga = Dm * Lm; // área proyectada aproximada (m²)
+    const A_manga = Math.pow(Dm,2)*(Math.pi/4); // área proyectada aproximada (m²)
     const fs = Number(document.getElementById("fs").value) || 1.5;
     const Cd_manga = Number(document.getElementById("Cd_manga").value) || 1.2;
     const rho = 1.225;
