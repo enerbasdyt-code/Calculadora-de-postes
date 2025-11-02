@@ -176,8 +176,8 @@ function calcular(){
     const alpha = Number(document.getElementById('alpha').value) || 0.22;
 
     // velocidad a altura total (m/s)
-    const vkh = (hTotal>0) ? v10 * Math.pow((hTotal/10), alpha) : v10;
-    const vH = (vkh * 5/18).toFixed(1);
+    const vkh = (hTotal>0) ? v10 * Math.pow((hTotal/10), alpha).toFixed(3) : v10;
+    const vH = (vkh * 5/18);
 
     // windsock: área y fuerza puntual en punta
     const diamPul = Number(document.getElementById("diamManga").value) || 18;
