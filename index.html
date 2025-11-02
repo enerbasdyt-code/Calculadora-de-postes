@@ -217,11 +217,11 @@ function calcular(){
     // momentos y otros datos
     const momento = fuerza * alturaPoste;
     // llenar tabla L/X
-    document.getElementById('l300').textContent = (alturaPoste/0.300).toFixed(4) + " mm";
-    document.getElementById('l200').textContent = (alturaPoste/0.200).toFixed(4) + " mm";
-    document.getElementById('l150').textContent = (alturaPoste/0.150).toFixed(4) + " mm";
-    document.getElementById('l125').textContent = (alturaPoste/0.125).toFixed(4) + " mm";
-    document.getElementById('l100').textContent = (alturaPoste/0.1).toFixed(4) + " mm";
+    document.getElementById('l300').textContent = (alturaPoste/0.300).toFixed(2) + " mm";
+    document.getElementById('l200').textContent = (alturaPoste/0.200).toFixed(2) + " mm";
+    document.getElementById('l150').textContent = (alturaPoste/0.150).toFixed(2) + " mm";
+    document.getElementById('l125').textContent = (alturaPoste/0.125).toFixed(2) + " mm";
+    document.getElementById('l100').textContent = (alturaPoste/0.1).toFixed(2) + " mm";
 
     // mostrar resultados
     const out = [];
@@ -230,7 +230,7 @@ function calcular(){
     out.push(`Altura total (usada para V): ${hTotal.toFixed(3)} m`);
     out.push(`Velocidad base (E020, V10): ${v10.toFixed(3)} m/s`);
     out.push(`Alpha: ${alpha}`);
-    out.push(`Velocidad a altura del poste: ${vH.toFixed(3)} m/s (${vKh} km/h)`);
+    out.push(`Velocidad a altura del poste: ${vH.toFixed(3)} m/s (${vkh} km/h)`);
     out.push(`Área manga aproximada: ${A_manga.toFixed(4)} m²`);
     out.push(`Fuerza puntual en la punta (windsock) con FS: ${fuerza.toFixed(3)} N`);
     out.push(`Momento en base por windsock: ${momento.toFixed(3)} N·m`);
