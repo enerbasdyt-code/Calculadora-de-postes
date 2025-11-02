@@ -107,6 +107,17 @@ const extCanastilla = {
     24: 0.60,  // 60 cm
     36: 0.75   // 75 cm
    }; 
+
+// Tabla editable de separación mínima de canto inferior canastilla al terreno o plataforma
+    
+const separaManga = {
+    8: 1.5,   // m
+    13: 1.5,  // m
+    18: 2,  // m
+    20: 2.5,  // m
+    24: 2.5,  // m
+    36: 3   // m
+   }; 
 // ---------- Velocidades por departamento (editable) ----------
 const velocidades = {
     Amazonas: 75, Áncash: 85, Apurímac: 65, Arequipa: 85, Ayacucho: 65, Cajamarca: 120,
@@ -211,6 +222,10 @@ function calcular(){
     // Si el diámetro está en la tabla usa su valor, si no, usa 0 para evitar errores
     longExt = extCanastilla[diamPul] || 0;
     }
+
+    const distManga=separaManga[diamPul]
+
+
     
     // constantes para deflexión
     const E = 200e9; // Pa
@@ -258,10 +273,10 @@ function calcular(){
     out.push(`Momento en base por windsock: ${momento.toFixed(3)} N·m`);
     out.push(`Peso aproximado del poste: ${pesoPoste.toFixed(3)} kg`);
     out.push(`Deflexión TOTAL en punta: ${deflexionMM} mm`);
-    if (tipoSoporte === "aro" && alturaPoste >= longPul*0.0254 + 1.5) {
+    if (tipoSoporte === "aro" && alturaPoste >= longPul*0.0254 + distManga) {
     out.push(`La altura del poste es ADECUADA para la longitud de la manga`);
     }
-    else if (tipoSoporte === "canastilla" && alturaPoste >= longPul*0.0254 + 1.5 - longExt) {
+    else if (tipoSoporte === "canastilla" && alturaPoste >= longPul*0.0254 + distManga - longExt) {
     out.push(`La altura del poste es ADECUADA para la longitud de la manga`);
     }
     else {
