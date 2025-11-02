@@ -205,40 +205,17 @@ function calcular(){
         const Ltr = t._L || 0;
         const xb = xa_acc + Ltr;
         const Ia = t._I;
-        const term = Math.pow(alturaPoste - xa_acc, 3) - Math.pow(alturaPoste - xb, 3);
+        const term = Math.pow(alturaPoste,2)*xb-alturaPoste*Math.pow(xb,2)+(1/3)*Math.pow(xb,3)-Math.pow(alturaPoste,2)*xa_acc+alturaPoste*Math.pow(xa_acc,2)-(1/3)*Math.pow(xa_acc,3);
         if(Ia > 0){
-            const delta_i = fuerza / (6 * E * Ia) * term; // m
+            const delta_i = fuerza / (E * Ia) * term; // m
             delta_F_total += delta_i;
             console.log(`F-tip Tramo ${idx+1}: xa=${xa_acc.toFixed(3)}, xb=${xb.toFixed(3)}, I=${Ia.toExponential(3)}, δ_F_i=${(delta_i*1000).toFixed(4)} mm`);
         }
         xa_acc = xb;
     });
 
-    // ---- Deflexión por carga distribuida del viento sobre fuste (exacta por tramos)
-    // q_i = 0.5 * rho * vH^2 * D_local * Cd_fuste  [N/m]  (actúa sobre el tramo)
-    // δ_q_i = (q_i / (24 E I_i)) * [ L^4 + 4 xa L^3 + 6 xa^2 L^2 + 4 xa^3 L ]
-    let delta_q_total = 0;
-    xa_acc = 0;
-    tramos.forEach((t, idx) => {
-        const Ltr = t._L || 0;
-        const xb = xa_acc + Ltr;
-        const Dlocal = t._OD || 0; // diámetro exterior en m
-        const Ia = t._I;
-        const q_i = 0.5 * rho * vH * vH * Dlocal * Cd_fuste; // N/m
 
-        if(Ia > 0 && Ltr > 0){
-            const L = Ltr;
-            const xa = xa_acc;
-            // polinomio
-            const poly = (Math.pow(L,4) + 4*xa*Math.pow(L,3) + 6*Math.pow(xa,2)*Math.pow(L,2) + 4*Math.pow(xa,3)*L);
-            const delta_qi = (q_i / (24 * E * Ia)) * poly; // m
-            delta_q_total += delta_qi;
-            console.log(`q Tramo ${idx+1}: xa=${xa.toFixed(3)}, xb=${xb.toFixed(3)}, q=${q_i.toFixed(3)} N/m, δ_q_i=${(delta_qi*1000).toFixed(4)} mm`);
-        }
-        xa_acc = xb;
-    });
-
-    const deflexionTotal_m = delta_F_total + delta_q_total;
+    const deflexionTotal_m = delta_F_total;
     const deflexionMM = (deflexionTotal_m * 1000).toFixed(2);
 
     // momentos y otros datos
@@ -263,7 +240,6 @@ function calcular(){
     out.push(`Momento en base por windsock: ${momento.toFixed(3)} N·m`);
     out.push(`Peso aproximado del poste: ${pesoPoste.toFixed(3)} kg`);
     out.push(`Deflexión por fuerza puntual (sum tramos): ${(delta_F_total*1000).toFixed(3)} mm`);
-    out.push(`Deflexión por carga distribuida (sum tramos): ${(delta_q_total*1000).toFixed(3)} mm`);
     out.push(`Deflexión TOTAL en punta: ${deflexionMM} mm`);
 
     document.getElementById('resultados').textContent = out.join('\n');
