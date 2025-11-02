@@ -57,7 +57,7 @@
     </div>
     <div style="flex:1">
         <label>Longitud (pulgadas): </label>
-        <input id="longManga" type="number" value="24">
+        <input id="longManga" type="number" value="54">
     </div>
 </div>
 <br>
@@ -68,15 +68,24 @@
     <option value="canastilla">Canastilla extendida</option>
 </select><br><br>
 
+    // Tabla editable de extensión de canastilla según diámetro (en metros)
+const extCanastilla = {
+    8: 0.30,   // 30 cm
+    13: 0.40,  // 40 cm
+    18: 0.45,  // 45 cm
+    20: 0.50,  // 50 cm
+    24: 0.60,  // 60 cm
+    36: 0.75   // 75 cm
+   }; 
 <h2>4. Seguridad y parámetros</h2>
 <div class="row">
     <div style="flex:1">
         <label>Factor de seguridad (FS): </label>
-        <input id="fs" type="number" step="0.1" value="1.5">
+        <input id="fs" type="number" step="0.1" value="1">
     </div>
     <div style="flex:1">
         <label>Cd (manga) :</label>
-        <input id="Cd_manga" type="number" step="0.01" value="1.2">
+        <input id="Cd_manga" type="number" step="0.01" value="1.5">
     </div>
 </div>
 <br>
@@ -167,7 +176,16 @@ function calcular(){
         t._L = L;            // almacenar longitud del tramo
         t._OD = sch40[d].OD; // almacenar OD por si se usa
     });
+    
+    // --- Nueva parte para definir la extensión si se usa canastilla
+    let longExt = 0;
+    const tipoSoporte = document.getElementById("tipoSoporte").value;
 
+    if (tipoSoporte === "Canastilla extendida") {
+    // Si el diámetro está en la tabla usa su valor, si no, usa 0 para evitar errores
+    longExt = extCanastilla[diamPul] || 0;
+    }
+    
     const alturaTerr = Number(document.getElementById("alturaTerreno").value) || 0;
     const hTotal = alturaPoste + alturaTerr;
 
@@ -236,7 +254,15 @@ function calcular(){
     out.push(`Momento en base por windsock: ${momento.toFixed(3)} N·m`);
     out.push(`Peso aproximado del poste: ${pesoPoste.toFixed(3)} kg`);
     out.push(`Deflexión TOTAL en punta: ${deflexionMM} mm`);
-
+    if (tipoSoporte === "aro" && alturaPoste >= longPul*0.0254 + 1.5) {
+    out.push(`La altura del poste es ADECUADA para la longitud de la manga`);
+    }
+    else if (tipoSoporte === "Canastilla extendida" && alturaPoste >= longPul*0.0254 + 1.5 - longExt*0.1) {
+    out.push(`La altura del poste es ADECUADA para la longitud de la manga`);
+    }
+    else {
+    out.push(`La altura del poste es INSUFICIENTE para la longitud de la manga`);
+    }
     document.getElementById('resultados').textContent = out.join('\n');
 
     console.log("Deflexión final (mm):", deflexionMM);
