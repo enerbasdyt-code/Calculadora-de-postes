@@ -205,7 +205,7 @@ function calcular(){
         const Ltr = t._L || 0;
         const xb = xa_acc + Ltr;
         const Ia = t._I;
-        const term = Math.pow(hTotal - xa_acc, 3) - Math.pow(hTotal - xb, 3);
+        const term = Math.pow(alturaPoste - xa_acc, 3) - Math.pow(alturaPoste - xb, 3);
         if(Ia > 0){
             const delta_i = fuerza / (6 * E * Ia) * term; // m
             delta_F_total += delta_i;
