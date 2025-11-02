@@ -239,7 +239,6 @@ function calcular(){
     out.push(`Fuerza puntual en la punta (windsock) con FS: ${fuerza.toFixed(3)} N`);
     out.push(`Momento en base por windsock: ${momento.toFixed(3)} N·m`);
     out.push(`Peso aproximado del poste: ${pesoPoste.toFixed(3)} kg`);
-    out.push(`Deflexión por fuerza puntual (sum tramos): ${(delta_F_total*1000).toFixed(3)} mm`);
     out.push(`Deflexión TOTAL en punta: ${deflexionMM} mm`);
 
     document.getElementById('resultados').textContent = out.join('\n');
