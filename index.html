@@ -159,7 +159,7 @@ function calcular(){
     // calcular I por tramo y total de altura
     tramos.forEach(t=>{
         const d = Number(t.querySelector('.diametro').value);
-        const L = Number(t.querySelector('.longitud').value) || 0;
+        const L = Number(t.querySelector('.longitud').value) || 2.5;
         alturaPoste += L;
         pesoPoste += sch40[d].peso * L;
         const I = (Math.PI/64) * (Math.pow(sch40[d].OD,4) - Math.pow(sch40[d].ID,4));
@@ -177,7 +177,7 @@ function calcular(){
 
     // velocidad a altura total (m/s)
     const vkh = (hTotal>0) ? v10 * Math.pow((hTotal/10), alpha) : v10;
-    const vH = (vH * 5/18).toFixed(1);
+    const vH = (vkh * 5/18).toFixed(1);
 
     // windsock: área y fuerza puntual en punta
     const diamPul = Number(document.getElementById("diamManga").value) || 18;
