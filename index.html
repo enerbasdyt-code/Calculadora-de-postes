@@ -179,14 +179,7 @@ function calcular(){
         t._OD = sch40[d].OD; // almacenar OD por si se usa
     });
     
-    // --- Nueva parte para definir la extensión si se usa canastilla
-    let longExt = 0;
-    const tipoSoporte = document.getElementById("tipoSoporte").value;
 
-    if (tipoSoporte === "canastilla") {
-    // Si el diámetro está en la tabla usa su valor, si no, usa 0 para evitar errores
-    longExt = extCanastilla[diamPul] || 0;
-    }
     
     const alturaTerr = Number(document.getElementById("alturaTerreno").value) || 0;
     const hTotal = alturaPoste + alturaTerr;
@@ -209,7 +202,16 @@ function calcular(){
     const Cd_manga = Number(document.getElementById("Cd_manga").value) || 1.5;
     const rho = 1.225;
     const fuerza = 0.5 * rho * vH * vH * A_manga * Cd_manga * fs; // N (fuerza puntual en punta)
+   
+    // --- Nueva parte para definir la extensión si se usa canastilla
+    let longExt = 0;
+    const tipoSoporte = document.getElementById("tipoSoporte").value;
 
+    if (tipoSoporte === "canastilla") {
+    // Si el diámetro está en la tabla usa su valor, si no, usa 0 para evitar errores
+    longExt = extCanastilla[diamPul] || 0;
+    }
+    
     // constantes para deflexión
     const E = 200e9; // Pa
 
